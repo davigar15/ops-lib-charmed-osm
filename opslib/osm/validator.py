@@ -1,71 +1,116 @@
-from typing import Any, Optional, Generic, get_origin, get_args, Union, List
+from typing import Any, get_origin, get_args, Union, List
 from collections.abc import Iterable
+from enum import Enum
 
-__all__ = ["ValidationError", "Validator"]
+__all__ = ["ValidationError", "Validator", "AttributeErrorTypes", "validator"]
+
+
+def validator(argument):
+    def call(function):
+        def wrapper(argument):
+            print(argument)
+            result = function(Validator, argument)
+            return result
+
+        wrapper.decorator = True
+        wrapper.argument = argument
+        return wrapper
+
+    return call
+
+
+class AttributeErrorTypes:
+    INVALID_TYPE = "Invalid type"
+    MISSING = "Missing attribute"
+    UNDEFINED = "Undefined attribute"
+
+
+class AttributeError(Exception):
+    def __init__(self, name: str, message: str):
+        self.name = name
+        self.message = message
+
+    def __str__(self):
+        return f"{self.name}\n    {self.message}\n"
 
 
 class ValidationError(Exception):
-    _message = "Error{} found in {}"
+    _message = "{} validation errors.\n{}"
 
-    def __init__(self, invalid: List[str], missing: List[str], extra: List[str]):
-        self.invalid = invalid
-        self.missing = missing
-        self.extra = extra
+    def __init__(self, exceptions: List[AttributeError]):
+        self.exceptions = exceptions
+        self.attribute_errors = {e.name: e.message for e in self.exceptions}
 
-    @property
-    def message(self):
-        error_attrs = []
-        error_attrs.extend(self.invalid)
-        error_attrs.extend(self.missing)
-        error_attrs.extend(self.extra)
+    def __repr__(self):
         return self._message.format(
-            "s" if len(error_attrs) > 1 else "",
-            " ".join(error_attrs),
+            len(self.exceptions),
+            "".join([str(exception) for exception in self.exceptions]),
         )
+
+    def __str__(self):
+        return self.__repr__()
+
+    def message(self):
+        return "Errors found in: {}".format(", ".join([self.attribute_errors.keys()]))
 
 
 class Validator:
-    def __init__(self, **data: Any):
-        model_attributes = self.get_all_attributes()
+    def __init__(__validator_self__, **data: Any):
+        data = {k.replace("-", "_"): v for k, v in data.items()}
 
-        invalid_attributes = []
-        missing_attributes = []
-        extra_attributes = [key for key in data if key not in model_attributes]
+        values, validation_error = validate_model(__validator_self__.__class__, data)
 
-        for attr_name, attr_type in model_attributes.items():
-            optional = _is_optional_type(attr_type)
-            type_to_check = _safe_get_type(attr_type)
-            args_type = _safe_get_args(attr_type)
+        if validation_error:
+            raise validation_error
 
-            data_value = data.get(attr_name)
-            if not data_value and not optional:
-                missing_attributes.append(attr_name)
-            else:
-                try:
-                    _validate(data_value, type_to_check, args_type)
-                except Exception as e:
-                    invalid_attributes.append(attr_name)
-                    continue
-                self.__setattr__(attr_name, data_value)
+        setattr(__validator_self__, "__dict__", values)
 
-        if invalid_attributes or missing_attributes or extra_attributes:
-            raise ValidationError(
-                invalid=invalid_attributes,
-                missing=missing_attributes,
-                extra=extra_attributes,
+
+def validate_model(model, data):
+    validation_exceptions = []
+    model_attributes = getattr(model, "__annotations__")
+    __decorator_validators__ = {
+        validator.argument: validator
+        for validator in model.__dict__.values()
+        if hasattr(validator, "decorator")
+    }
+    error = None
+    values = {}
+    extra_attributes = [key for key in data if key not in model_attributes]
+    if extra_attributes:
+        for extra_attr in extra_attributes:
+            validation_exceptions.append(
+                AttributeError(extra_attr, AttributeErrorTypes.UNDEFINED)
             )
 
-    @classmethod
-    def get_all_attributes(cls):
-        return getattr(cls, "__dict__")["__annotations__"]
+    for attr_name, attr_type in model_attributes.items():
+        optional = _is_optional_type(attr_type)
+        type_to_check = _safe_get_type(attr_type)
+        args_type = _safe_get_args(attr_type)
 
-    @classmethod
-    def get_mandatory_attributes(cls):
-        mandatory_fields = []
-        for attr_name, attr_type in cls.get_all_attributes().items():
-            if not _is_optional_type(attr_type):
-                mandatory_fields.append(attr_name)
-        return mandatory_fields
+        data_value = data.get(attr_name)
+        if data_value is None and not optional:
+            validation_exceptions.append(
+                AttributeError(attr_name, AttributeErrorTypes.MISSING)
+            )
+        else:
+            error_msg = ""
+            try:
+                _validate(data_value, type_to_check, args_type)
+                if attr_name in __decorator_validators__:
+                    data[attr_name] = __decorator_validators__[attr_name](data_value)
+            except Exception as e:
+                error_msg = str(e)
+                validation_exceptions.append(AttributeError(attr_name, error_msg))
+                continue
+    if validation_exceptions:
+        error = ValidationError(exceptions=validation_exceptions)
+    else:
+        values.update(
+            {attr_name: data.get(attr_name) for attr_name in model_attributes}
+        )
+
+    return values, error
 
 
 def _safe_get_type(obj_type):
@@ -86,13 +131,13 @@ def _safe_get_args(obj_type):
 def _is_optional_type(obj_type):
     origin = get_origin(obj_type)
     args = get_args(obj_type)
-    return origin == Union and len(args) == 2 and args[1] is type(None)
+    return origin == Union and len(args) == 2 and args[1] is type(None)  # noqa: E721
 
 
 def _validate(data_value, type_to_check, args_type):
-    if data_value:
+    if data_value is not None:
         if not isinstance(data_value, type_to_check):
-            raise Exception()
+            raise Exception(AttributeErrorTypes.INVALID_TYPE)
         elif args_type and isinstance(data_value, Iterable):
             for v in data_value:
                 tuple_of_types = (
@@ -101,4 +146,4 @@ def _validate(data_value, type_to_check, args_type):
                     else (type(v),)
                 )
                 if tuple_of_types != args_type:
-                    raise Exception()
+                    raise Exception(AttributeErrorTypes.INVALID_TYPE)

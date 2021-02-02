@@ -1,48 +1,52 @@
 import unittest
-from opslib.osm import Validator, ValidationError
+from opslib.osm import Validator, ValidationError, AttributeErrorTypes, validator
 from typing import Optional, List, Dict, Tuple, Set
 
 
 MANDATORY_ATTRS = [
+    "boolean",
     "integer",
     "string",
     "tuple_attr",
     "set_attr",
-    # "list_int",
-    # "list_str",
-    # "dict_str_int",
-    # "dict_int_str",
+    "list_int",
+    "list_str",
+    "dict_str_int",
+    "dict_int_str",
 ]
 
 VALUES = {
-    "integer": 1,
+    "boolean": False,
+    "integer": 2,
     "string": "1",
     "tuple_attr": (1, 2),
     "set_attr": {1, 2},
-    # "list_int": [1, 2],
-    # "list_str": ["1", "2"],
-    # "dict_str_int": {"1": 1, "2": 2},
-    # "dict_int_str": {1: "1", 2: "2"},
+    "list_int": [1, 2],
+    "list_str": ["1", "2"],
+    "dict_str_int": {"1": 1, "2": 2},
+    "dict_int_str": {1: "1", 2: "2"},
 }
 
 
 class ExampleModel(Validator):
+    boolean: bool
     integer: int
     string: str
     tuple_attr: Tuple[int]
     set_attr: Set[int]
-    # list_int: List[int]
-    # list_str: List[str]
-    # dict_str_int: Dict[str, int]
-    # dict_int_str: Dict[int, str]
+    list_int: List[int]
+    list_str: List[str]
+    dict_str_int: Dict[str, int]
+    dict_int_str: Dict[int, str]
+    opt_boolean: Optional[bool]
     opt_integer: Optional[int]
     opt_string: Optional[str]
     opt_tuple_attr: Optional[Tuple[int]]
     opt_set_attr: Optional[Set[int]]
-    # opt_list_int: Optional[List[int]]
-    # opt_list_str: Optional[List[str]]
-    # opt_dict_str_int: Optional[Dict[str, int]]
-    # opt_dict_int_str: Optional[Dict[int, str]]
+    opt_list_int: Optional[List[int]]
+    opt_list_str: Optional[List[str]]
+    opt_dict_str_int: Optional[Dict[str, int]]
+    opt_dict_int_str: Optional[Dict[int, str]]
 
 
 class TestValidator(unittest.TestCase):
@@ -58,6 +62,12 @@ class TestValidator(unittest.TestCase):
         model = ExampleModel(**data)
         for attr, value in data.items():
             self.assertEqual(model.__getattribute__(attr), value)
+
+    def test_validator_mandatory_with_dash_success(self):
+        data = VALUES
+        model = ExampleModel(**data)
+        for attr, value in data.items():
+            self.assertEqual(model.__getattribute__(attr.replace("-", "_")), value)
 
     def test_validator_wrong(self):
         testing_data = {attr: None for attr in MANDATORY_ATTRS}
@@ -76,8 +86,14 @@ class TestValidator(unittest.TestCase):
                 ExampleModel(**data)
             except ValidationError as e:
                 raised = True
-                self.assertTrue("Errors found in" in e.message)
-                self.assertTrue(all(key in e.invalid for key in data))
+                self.assertTrue(
+                    all(
+                        key in e.attribute_errors
+                        and e.attribute_errors[key] == AttributeErrorTypes.INVALID_TYPE
+                        for key in data
+                        if not ("integer" in key and isinstance(data[key], bool))
+                    )
+                )
             self.assertTrue(raised)
 
     def test_validator_missing(self):
@@ -87,6 +103,11 @@ class TestValidator(unittest.TestCase):
             ExampleModel(**data)
         except ValidationError as e:
             raised = True
-            self.assertTrue("Errors found in" in e.message)
-            self.assertTrue(all(key in e.missing for key in MANDATORY_ATTRS))
+            self.assertTrue(
+                all(
+                    key in e.attribute_errors
+                    and e.attribute_errors[key] == AttributeErrorTypes.MISSING
+                    for key in data
+                )
+            )
         self.assertTrue(raised)
