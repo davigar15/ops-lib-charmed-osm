@@ -1,6 +1,5 @@
 from typing import Any, get_origin, get_args, Union, List
 from collections.abc import Iterable
-from enum import Enum
 
 __all__ = ["ValidationError", "Validator", "AttributeErrorTypes", "validator"]
 
@@ -55,15 +54,15 @@ class ValidationError(Exception):
 
 
 class Validator:
-    def __init__(__validator_self__, **data: Any):
+    def __init__(self, **data: Any):
         data = {k.replace("-", "_"): v for k, v in data.items()}
 
-        values, validation_error = validate_model(__validator_self__.__class__, data)
+        values, validation_error = validate_model(self.__class__, data)
 
         if validation_error:
             raise validation_error
 
-        setattr(__validator_self__, "__dict__", values)
+        setattr(self, "__dict__", values)
 
 
 def validate_model(model, data):
