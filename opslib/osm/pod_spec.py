@@ -156,7 +156,7 @@ class ContainerV3Builder:
         initialDelaySeconds=10,
         timeoutSeconds=30,
     ):
-        self._liveness_probe = self._http_probe(
+        self._readiness_probe = self._http_probe(
             path, port, initialDelaySeconds, timeoutSeconds
         )
 
@@ -195,13 +195,14 @@ class ContainerV3Builder:
             "ports": self.ports,
             "envConfig": self.env_config,
             "volumeConfig": self.volume_config,
-            "kubernetes": {
-                "readinessProbe": self.readiness_probe,
-                "livenessProbe": self.liveness_probe,
-            },
+            "kubernetes": {},
         }
         if self.command:
             container["command"] = self.command
+        if self.readiness_probe:
+            container["kubernetes"]["readinessProbe"] = self.readiness_probe
+        if self.liveness_probe:
+            container["kubernetes"]["livenessProbe"] = self.liveness_probe
         return container
 
 
