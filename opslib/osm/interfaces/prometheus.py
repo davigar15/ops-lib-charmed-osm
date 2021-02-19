@@ -67,7 +67,7 @@ class PrometheusClient(ops.framework.Object):
     def __init__(self, charm: ops.charm.CharmBase, relation_name: str):
         super().__init__(charm, relation_name)
 
-        self.relation_name = relation_name
+        self.relation = self.framework.model.get_relation(relation_name)
 
         self.framework.observe(
             charm.on[relation_name].relation_changed, self._on_changed
@@ -78,20 +78,19 @@ class PrometheusClient(ops.framework.Object):
         for entity in entities:
             if isinstance(entity, Application) and self.framework.model.app != entity:
                 return entity
+
     @property
     def hostname(self):
-        relation = self.framework.model.get_relation(self.relation_name)
-        if relation:
-            remote_app = self._get_remote_app_data(relation.data.keys())
-            reldata = relation.data.get(remote_app, {})
+        if self.relation:
+            remote_app = self._get_remote_app_data(self.relation.data.keys())
+            reldata = self.relation.data.get(remote_app, {})
             return reldata.get("hostname", None)
 
     @property
     def port(self):
-        relation = self.framework.model.get_relation(self.relation_name)
-        if relation:
-            remote_app = self._get_remote_app_data(relation.data.keys())
-            reldata = relation.data.get(remote_app, {})
+        if self.relation:
+            remote_app = self._get_remote_app_data(self.relation.data.keys())
+            reldata = self.relation.data.get(remote_app, {})
             return int(reldata.get("port", 9090))
 
     def _on_changed(self, event: ops.charm.RelationEvent) -> None:
