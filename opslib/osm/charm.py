@@ -20,7 +20,7 @@
 # osm-charmers@lists.launchpad.net
 ##
 
-__all__ = ["CharmedOsmBase"]
+__all__ = ["CharmedOsmBase", "RelationsMissing"]
 
 
 import logging
@@ -32,6 +32,15 @@ from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus
 from oci_image import OCIImageResource, OCIImageResourceError
 
 logger = logging.getLogger(__name__)
+
+
+class RelationsMissing(Exception):
+    def __init__(self, missing_relations: list):
+        self.message = ""
+        if missing_relations and isinstance(missing_relations, list):
+            self.message += f'Waiting for {", ".join(missing_relations)} relation'
+            if "," in self.message:
+                self.message += "s"
 
 
 class CharmedOsmBase(CharmBase):
@@ -71,9 +80,13 @@ class CharmedOsmBase(CharmBase):
 
         try:
             pod_spec = self.build_pod_spec(image_info)
-        except ValueError as exc:
-            logger.exception("Config data validation error")
-            self.unit.status = BlockedStatus(str(exc))
+        except ValueError as e:
+            logger.exception(f"Config data validation error: {e}")
+            self.unit.status = BlockedStatus(str(e))
+            return
+        except RelationsMissing as exc:
+            logger.exception(f"Relation missing error: {exc.message}")
+            self.unit.status = BlockedStatus(exc.message)
             return
 
         if self.state.pod_spec != pod_spec:
