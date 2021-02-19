@@ -1,7 +1,7 @@
 import unittest
 
 from opslib.osm.validator import (
-    Validator,
+    ModelValidator,
     ValidationError,
     AttributeErrorTypes,
     validator,
@@ -34,7 +34,7 @@ VALUES = {
 }
 
 
-class ExampleModel(Validator):
+class ExampleModel(ModelValidator):
     boolean: bool
     integer: int
     string: str

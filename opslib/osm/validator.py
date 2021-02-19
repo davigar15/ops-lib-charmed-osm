@@ -1,14 +1,13 @@
 from typing import Any, get_origin, get_args, Union, List
 from collections.abc import Iterable
 
-__all__ = ["ValidationError", "Validator", "AttributeErrorTypes", "validator"]
+__all__ = ["ValidationError", "ModelValidator", "AttributeErrorTypes", "validator"]
 
 
 def validator(argument):
     def call(function):
         def wrapper(argument):
-            print(argument)
-            result = function(Validator, argument)
+            result = function(ModelValidator, argument)
             return result
 
         wrapper.decorator = True
@@ -53,7 +52,7 @@ class ValidationError(Exception):
         return "Errors found in: {}".format(", ".join([self.attribute_errors.keys()]))
 
 
-class Validator:
+class ModelValidator:
     def __init__(self, **data: Any):
         data = {k.replace("-", "_"): v for k, v in data.items()}
 
