@@ -74,7 +74,7 @@ class IngressResourceV3Builder:
         )
 
     def add_tls(self, hosts, secret_name):
-        tls = {"hosts": [hosts]}
+        tls = {"hosts": hosts}
         if secret_name:
             tls["secretName"] = secret_name
         self._tls.append(tls)

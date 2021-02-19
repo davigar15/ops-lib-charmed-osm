@@ -229,7 +229,7 @@ class TestPodSpecBuilder(unittest.TestCase):
                                 ],
                                 "tls": [
                                     {
-                                        "hosts": [["hostname"]],
+                                        "hosts": ["hostname"],
                                         "secretName": "tls_secret_name",
                                     },
                                 ],
