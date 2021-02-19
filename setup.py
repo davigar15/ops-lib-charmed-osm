@@ -22,6 +22,12 @@ def get_version():
     LIBPATCH = int(re.search(r"""(?m)^LIBPATCH\s*=\s*(\d+)""", pkg).group(1))
     return f"{LIBAPI}.{LIBPATCH}"
 
+install_requires = ["oci_image @ git+https://github.com/juju-solutions/resource-oci-image/@c5778285d332edf3d9a538f9d0c06154b7ec1b0b#egg=oci-image"]
+with open('requirements.txt') as f:
+    install_requires.extend([req for req in f.read().splitlines() if "==" in req])
+
+with open('requirements.txt') as f:
+    dependency_links = [req.replace("git+", "") for req in f.read().splitlines() if "git+https" in req]
 
 setuptools.setup(
     name="ops-lib-osm",
@@ -50,5 +56,6 @@ setuptools.setup(
         "Juju Operator Framework": "https://pypi.org/project/ops/",
     },
     python_requires=">=3.6",
-    install_requires=["ops >= 0.8.0"],
+    install_requires=install_requires,
+    dependency_links=dependency_links,
 )

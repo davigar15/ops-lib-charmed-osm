@@ -193,7 +193,11 @@ class TestPodSpecBuilder(unittest.TestCase):
                             }
                         ],
                         "kubernetes": {
-                            "readinessProbe": {},
+                            "readinessProbe": {
+                                "httpGet": {"path": "/-/ready", "port": 9090},
+                                "initialDelaySeconds": 10,
+                                "timeoutSeconds": 30,
+                            },
                             "livenessProbe": {
                                 "httpGet": {"path": "/-/healthy", "port": 9090},
                                 "initialDelaySeconds": 10,
