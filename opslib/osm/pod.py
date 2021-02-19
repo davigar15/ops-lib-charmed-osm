@@ -153,22 +153,28 @@ class ContainerV3Builder:
         self,
         path,
         port,
-        initialDelaySeconds=10,
-        timeoutSeconds=30,
+        initial_delay_seconds=0,
+        timeout_seconds=1,
+        period_seconds=10,
+        success_threshold=1,
+        failure_threshold=3,
     ):
         self._readiness_probe = self._http_probe(
-            path, port, initialDelaySeconds, timeoutSeconds
+            path, port, initial_delay_seconds, timeout_seconds
         )
 
     def add_http_liveness_probe(
         self,
         path,
         port,
-        initialDelaySeconds=10,
-        timeoutSeconds=30,
+        initial_delay_seconds=0,
+        timeout_seconds=1,
+        period_seconds=10,
+        success_threshold=1,
+        failure_threshold=3,
     ):
         self._liveness_probe = self._http_probe(
-            path, port, initialDelaySeconds, timeoutSeconds
+            path, port, initial_delay_seconds, timeout_seconds
         )
 
     def add_env(self, key: str, value: str):
@@ -177,14 +183,26 @@ class ContainerV3Builder:
     def add_envs(self, envs: dict):
         self._envs = {**self._envs, **envs}
 
-    def _http_probe(self, path, port, initialDelaySeconds, timeoutSeconds):
+    def _http_probe(
+        self,
+        path,
+        port,
+        initial_delay_seconds=0,
+        timeout_seconds=1,
+        period_seconds=10,
+        success_threshold=1,
+        failure_threshold=3,
+    ):
         return {
             "httpGet": {
                 "path": path,
                 "port": port,
             },
-            "initialDelaySeconds": initialDelaySeconds,
-            "timeoutSeconds": timeoutSeconds,
+            "initialDelaySeconds": initial_delay_seconds,
+            "timeoutSeconds": timeout_seconds,
+            "successThreshold": success_threshold,
+            "failureThreshold": failure_threshold,
+            "periodSeconds": period_seconds,
         }
 
     def build(self):

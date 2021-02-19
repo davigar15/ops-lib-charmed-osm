@@ -82,13 +82,19 @@ class TestPodSpecBuilder(unittest.TestCase):
                         "kubernetes": {
                             "readinessProbe": {
                                 "httpGet": {"path": "/-/ready", "port": 9090},
-                                "initialDelaySeconds": 10,
-                                "timeoutSeconds": 30,
+                                "initialDelaySeconds": 0,
+                                "timeoutSeconds": 1,
+                                "successThreshold": 1,
+                                "failureThreshold": 3,
+                                "periodSeconds": 10,
                             },
                             "livenessProbe": {
                                 "httpGet": {"path": "/-/healthy", "port": 9090},
-                                "initialDelaySeconds": 10,
-                                "timeoutSeconds": 30,
+                                "initialDelaySeconds": 0,
+                                "timeoutSeconds": 1,
+                                "successThreshold": 1,
+                                "failureThreshold": 3,
+                                "periodSeconds": 10,
                             },
                         },
                         "command": ["/bin/prometheus"],
