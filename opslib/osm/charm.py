@@ -85,7 +85,7 @@ class CharmedOsmBase(CharmBase):
             self.unit.status = BlockedStatus(str(e))
             return
         except RelationsMissing as exc:
-            logger.exception(f"Relation missing error: {exc.message}")
+            logger.error(f"Relation missing error: {exc.message}")
             self.unit.status = BlockedStatus(exc.message)
             return
 

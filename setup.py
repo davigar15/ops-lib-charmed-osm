@@ -45,7 +45,7 @@ setuptools.setup(
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     url="https://github.com/davigar15/ops-lib-osm",
-    packages=["opslib.osm"],
+    packages=["opslib.osm", "opslib.osm.interfaces"],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Programming Language :: Python :: 3 :: Only",

@@ -26,7 +26,7 @@ import logging
 import ops.charm
 import ops.framework
 import ops.model
-
+from ops.model import Application
 
 __all__ = [
     "PrometheusClient",
@@ -62,36 +62,37 @@ class PrometheusClient(ops.framework.Object):
     """Requires side of a Prometheus Endpoint"""
 
     on = PrometheusClientEvents()
-    _state = ops.framework.StoredState()
-
     relation_name: str = None
-    log: logging.Logger = None
 
     def __init__(self, charm: ops.charm.CharmBase, relation_name: str):
         super().__init__(charm, relation_name)
 
         self.relation_name = relation_name
-        self.relation = self.framework.model.get_relation(self.relation_name)
-
-        self.log = logging.getLogger("prometheus.client.{}".format(relation_name))
-        self._state.set_default(rels={})
 
         self.framework.observe(
             charm.on[relation_name].relation_changed, self._on_changed
         )
         self.framework.observe(charm.on[relation_name].relation_broken, self._on_broken)
 
+    def _get_remote_app_data(self, entities: list):
+        for entity in entities:
+            if isinstance(entity, Application) and self.framework.model.app != entity:
+                return entity
     @property
     def hostname(self):
-        if self.relation:
-            reldata = self.relation.data.get(self.framework.model.app, {})
+        relation = self.framework.model.get_relation(self.relation_name)
+        if relation:
+            remote_app = self._get_remote_app_data(relation.data.keys())
+            reldata = relation.data.get(remote_app, {})
             return reldata.get("hostname", None)
 
     @property
     def port(self):
-        if self.relation:
-            reldata = self.relation.data.get(self.framework.model.app, {})
-            return int(reldata.get("port", 9091))
+        relation = self.framework.model.get_relation(self.relation_name)
+        if relation:
+            remote_app = self._get_remote_app_data(relation.data.keys())
+            reldata = relation.data.get(remote_app, {})
+            return int(reldata.get("port", 9090))
 
     def _on_changed(self, event: ops.charm.RelationEvent) -> None:
         if event.app is None:
