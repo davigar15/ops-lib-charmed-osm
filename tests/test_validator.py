@@ -55,6 +55,16 @@ class ExampleModel(ModelValidator):
     opt_dict_int_str: Optional[Dict[int, str]]
 
 
+class ExampleCustomValidationModel(ModelValidator):
+    log_level: str
+
+    @validator("log_level")
+    def validate_log_level(cls, v):
+        if v not in {"INFO", "DEBUG"}:
+            raise ValueError("value must be INFO or DEBUG")
+        return v
+
+
 class TestValidator(unittest.TestCase):
     def test_validator_all_success(self):
         data = {attr: VALUES[attr] for attr in MANDATORY_ATTRS}
@@ -116,4 +126,19 @@ class TestValidator(unittest.TestCase):
                     for key in data
                 )
             )
+        self.assertTrue(raised)
+
+    def test_custom_validator_success(self):
+        data = {"log_level": "INFO"}
+        ExampleCustomValidationModel(**data)
+
+    def test_custom_validator_exception(self):
+        raised = False
+        wrong_data = {"log_level": "WRONG"}
+        expected_error = "value must be INFO or DEBUG"
+        try:
+            ExampleCustomValidationModel(**wrong_data)
+        except ValidationError as e:
+            raised = True
+            self.assertEqual(expected_error, e.attribute_errors["log_level"])
         self.assertTrue(raised)
