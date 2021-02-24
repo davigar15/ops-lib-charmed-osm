@@ -28,7 +28,7 @@ from typing import NoReturn
 
 from ops.charm import CharmBase
 from ops.framework import StoredState
-from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus
+from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus, ModelError
 from oci_image import OCIImageResource, OCIImageResourceError
 
 from .validator import ValidationError
@@ -86,13 +86,18 @@ class CharmedOsmBase(CharmBase):
             logger.exception(f"Config data validation error: {e}")
             self.unit.status = BlockedStatus(str(e))
             return
-        except RelationsMissing as exc:
-            logger.error(f"Relation missing error: {exc.message}")
-            self.unit.status = BlockedStatus(exc.message)
+        except RelationsMissing as e:
+            logger.error(f"Relation missing error: {e.message}")
+            self.unit.status = BlockedStatus(e.message)
             return
+        
 
         if self.state.pod_spec != pod_spec:
-            self.model.pod.set_spec(pod_spec)
-            self.state.pod_spec = pod_spec
+            try:
+                self.model.pod.set_spec(pod_spec)
+                self.state.pod_spec = pod_spec
+            except ModelError as e:
+                self.unit.status = BlockedStatus(str(e))
+
 
         self.unit.status = ActiveStatus("ready")
