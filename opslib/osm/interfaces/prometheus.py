@@ -21,8 +21,6 @@ Ported to the Operator Framework from the canonical-osm Reactive
 charms at https://git.launchpad.net/canonical-osm
 """
 
-import logging
-
 import ops.charm
 import ops.framework
 import ops.model
