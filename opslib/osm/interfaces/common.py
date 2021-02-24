@@ -28,9 +28,25 @@ class BaseRelationClient(ops.framework.Object):
                 if data:
                     return data
 
-    def is_missing_data(self):
+    def get_data_from_app(self, key: str):
+        if not self.relation or not self.relation.app in self.relation.data:
+            # This update relation doesn't seem to be needed, but I added it because apparently
+            # the data is empty in the unit tests. In reality, the constructor is called in every hook.
+            # In the unit tests when doing an update_relation_data, apparently it is not called.
+            self._update_relation()
+        if self.relation and self.relation.app in self.relation.data:
+            data = self.relation.data[self.relation.app].get(key)
+            if data:
+                return data
+
+    def is_missing_data_in_unit(self):
         return not all(
             [self.get_data_from_unit(field) for field in self.mandatory_fields]
+        )
+
+    def is_missing_data_in_app(self):
+        return not all(
+            [self.get_data_from_app(field) for field in self.mandatory_fields]
         )
 
     def _update_relation(self):

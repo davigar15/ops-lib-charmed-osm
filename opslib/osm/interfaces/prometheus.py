@@ -25,19 +25,7 @@ import ops.charm
 import ops.framework
 import ops.model
 from ops.model import Application
-
-__all__ = [
-    "PrometheusClient",
-    "PrometheusClientEvents",
-]
-
-
-class PrometheusChangedEvent(ops.framework.EventBase):
-    """PrometheusChangedEvent"""
-
-
-class PrometheusClientEvents(ops.framework.ObjectEvents):
-    changed = ops.framework.EventSource(PrometheusChangedEvent)
+from .common import BaseRelationClient
 
 
 class PrometheusServer(ops.framework.Object):
@@ -56,45 +44,18 @@ class PrometheusServer(ops.framework.Object):
                 relation.data[self.framework.model.app]["port"] = str(port)
 
 
-class PrometheusClient(ops.framework.Object):
+class PrometheusClient(BaseRelationClient):
     """Requires side of a Prometheus Endpoint"""
 
-    on = PrometheusClientEvents()
-    relation_name: str = None
+    mandatory_fields = ["hostname", "port"]
 
     def __init__(self, charm: ops.charm.CharmBase, relation_name: str):
-        super().__init__(charm, relation_name)
-
-        self.relation = self.framework.model.get_relation(relation_name)
-
-        self.framework.observe(
-            charm.on[relation_name].relation_changed, self._on_changed
-        )
-        self.framework.observe(charm.on[relation_name].relation_broken, self._on_broken)
-
-    def _get_remote_app_data(self, entities: list):
-        for entity in entities:
-            if isinstance(entity, Application) and self.framework.model.app != entity:
-                return entity
+        super().__init__(charm, relation_name, self.mandatory_fields)
 
     @property
     def hostname(self):
-        if self.relation:
-            remote_app = self._get_remote_app_data(self.relation.data.keys())
-            reldata = self.relation.data.get(remote_app, {})
-            return reldata.get("hostname", None)
+        return self.get_data_from_app("hostname")
 
     @property
     def port(self):
-        if self.relation:
-            remote_app = self._get_remote_app_data(self.relation.data.keys())
-            reldata = self.relation.data.get(remote_app, {})
-            return int(reldata.get("port", 9090))
-
-    def _on_changed(self, event: ops.charm.RelationEvent) -> None:
-        if event.app is None:
-            return  # Ignore unit relation data events.
-        self.on.changed.emit()
-
-    def _on_broken(self, event: ops.charm.RelationEvent) -> None:
-        self.on.changed.emit()
+        return self.get_data_from_app("port")
