@@ -31,6 +31,8 @@ from ops.framework import StoredState
 from ops.model import ActiveStatus, BlockedStatus, MaintenanceStatus
 from oci_image import OCIImageResource, OCIImageResourceError
 
+from .validator import ValidationError
+
 logger = logging.getLogger(__name__)
 
 
@@ -80,7 +82,7 @@ class CharmedOsmBase(CharmBase):
 
         try:
             pod_spec = self.build_pod_spec(image_info)
-        except ValueError as e:
+        except ValidationError as e:
             logger.exception(f"Config data validation error: {e}")
             self.unit.status = BlockedStatus(str(e))
             return
