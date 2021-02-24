@@ -29,7 +29,7 @@ class BaseRelationClient(ops.framework.Object):
                     return data
 
     def get_data_from_app(self, key: str):
-        if not self.relation or not self.relation.app in self.relation.data:
+        if not self.relation or self.relation.app not in self.relation.data:
             # This update relation doesn't seem to be needed, but I added it because apparently
             # the data is empty in the unit tests. In reality, the constructor is called in every hook.
             # In the unit tests when doing an update_relation_data, apparently it is not called.

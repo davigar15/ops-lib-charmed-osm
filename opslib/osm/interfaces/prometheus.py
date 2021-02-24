@@ -24,7 +24,6 @@ charms at https://git.launchpad.net/canonical-osm
 import ops.charm
 import ops.framework
 import ops.model
-from ops.model import Application
 from .common import BaseRelationClient
 
 
