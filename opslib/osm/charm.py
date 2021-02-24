@@ -90,7 +90,6 @@ class CharmedOsmBase(CharmBase):
             logger.error(f"Relation missing error: {e.message}")
             self.unit.status = BlockedStatus(e.message)
             return
-        
 
         if self.state.pod_spec != pod_spec:
             try:
@@ -98,6 +97,5 @@ class CharmedOsmBase(CharmBase):
                 self.state.pod_spec = pod_spec
             except ModelError as e:
                 self.unit.status = BlockedStatus(str(e))
-
 
         self.unit.status = ActiveStatus("ready")

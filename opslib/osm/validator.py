@@ -74,12 +74,12 @@ def validate_model(model, data):
     }
     error = None
     values = {}
-    extra_attributes = [key for key in data if key not in model_attributes]
-    if extra_attributes:
-        for extra_attr in extra_attributes:
-            validation_exceptions.append(
-                AttributeError(extra_attr, AttributeErrorTypes.UNDEFINED)
-            )
+    # extra_attributes = [key for key in data if key not in model_attributes]
+    # if extra_attributes:
+    #     for extra_attr in extra_attributes:
+    #         validation_exceptions.append(
+    #             AttributeError(extra_attr, AttributeErrorTypes.UNDEFINED)
+    #         )
 
     for attr_name, attr_type in model_attributes.items():
         optional = _is_optional_type(attr_type)
