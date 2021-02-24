@@ -45,6 +45,11 @@ class KeystoneServer(ops.framework.Object):
         username: str,
         password: str,
         service: str,
+        keystone_db_password: str,
+        region_id: str,
+        admin_username: str,
+        admin_password: str,
+        admin_project_name: str,
     ):
         if self.framework.model.unit.is_leader():
             for relation in self.framework.model.relations[self.relation_name]:
@@ -57,6 +62,11 @@ class KeystoneServer(ops.framework.Object):
                     relation_data["username"] = str(username)
                     relation_data["password"] = str(password)
                     relation_data["service"] = str(service)
+                    relation_data["keystone_db_password"] = str(keystone_db_password)
+                    relation_data["region_id"] = str(region_id)
+                    relation_data["admin_username"] = str(admin_username)
+                    relation_data["admin_password"] = str(admin_password)
+                    relation_data["admin_project_name"] = str(admin_project_name)
 
 
 class KeystoneClient(BaseRelationClient):
@@ -70,6 +80,11 @@ class KeystoneClient(BaseRelationClient):
         "username",
         "password",
         "service",
+        "keystone_db_password",
+        "region_id",
+        "admin_username",
+        "admin_password",
+        "admin_project_name",
     ]
 
     def __init__(self, charm: ops.charm.CharmBase, relation_name: str):
@@ -102,3 +117,23 @@ class KeystoneClient(BaseRelationClient):
     @property
     def service(self):
         return self.get_data_from_unit("service")
+
+    @property
+    def keystone_db_password(self):
+        return self.get_data_from_unit("keystone_db_password")
+
+    @property
+    def region_id(self):
+        return self.get_data_from_unit("region_id")
+
+    @property
+    def admin_username(self):
+        return self.get_data_from_unit("admin_username")
+
+    @property
+    def admin_password(self):
+        return self.get_data_from_unit("admin_password")
+
+    @property
+    def admin_project_name(self):
+        return self.get_data_from_unit("admin_project_name")
