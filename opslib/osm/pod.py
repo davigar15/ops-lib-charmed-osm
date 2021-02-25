@@ -177,12 +177,6 @@ class ContainerV3Builder:
             path, port, initial_delay_seconds, timeout_seconds
         )
 
-    def add_env(self, key: str, value: str):
-        self._envs[key] = value
-
-    def add_envs(self, envs: dict):
-        self._envs = {**self._envs, **envs}
-
     def _http_probe(
         self,
         path,
@@ -204,6 +198,58 @@ class ContainerV3Builder:
             "failureThreshold": failure_threshold,
             "periodSeconds": period_seconds,
         }
+
+    def add_tcpsocket_readiness_probe(
+        self,
+        port,
+        initial_delay_seconds=0,
+        timeout_seconds=1,
+        period_seconds=10,
+        success_threshold=1,
+        failure_threshold=3,
+    ):
+        self._readiness_probe = self._tcpsocket_probe(
+            port, initial_delay_seconds, timeout_seconds
+        )
+
+    def add_tcpsocket_liveness_probe(
+        self,
+        port,
+        initial_delay_seconds=0,
+        timeout_seconds=1,
+        period_seconds=10,
+        success_threshold=1,
+        failure_threshold=3,
+    ):
+        self._liveness_probe = self._tcpsocket_probe(
+            port, initial_delay_seconds, timeout_seconds
+        )
+
+    def _tcpsocket_probe(
+        self,
+        port,
+        initial_delay_seconds=0,
+        timeout_seconds=1,
+        period_seconds=10,
+        success_threshold=1,
+        failure_threshold=3,
+    ):
+        return {
+            "tcpSocket": {
+                "port": port,
+            },
+            "initialDelaySeconds": initial_delay_seconds,
+            "timeoutSeconds": timeout_seconds,
+            "successThreshold": success_threshold,
+            "failureThreshold": failure_threshold,
+            "periodSeconds": period_seconds,
+        }
+
+    def add_env(self, key: str, value: str):
+        self._envs[key] = value
+
+    def add_envs(self, envs: dict):
+        self._envs = {**self._envs, **envs}
 
     def build(self):
         container = {
