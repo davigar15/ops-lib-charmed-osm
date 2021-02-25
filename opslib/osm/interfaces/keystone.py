@@ -53,20 +53,19 @@ class KeystoneServer(ops.framework.Object):
     ):
         if self.framework.model.unit.is_leader():
             for relation in self.framework.model.relations[self.relation_name]:
-                for unit in relation.units:
-                    relation_data = relation.data[unit]
-                    relation_data["host"] = str(host)
-                    relation_data["port"] = str(port)
-                    relation_data["user_domain_name"] = str(user_domain_name)
-                    relation_data["project_domain_name"] = str(project_domain_name)
-                    relation_data["username"] = str(username)
-                    relation_data["password"] = str(password)
-                    relation_data["service"] = str(service)
-                    relation_data["keystone_db_password"] = str(keystone_db_password)
-                    relation_data["region_id"] = str(region_id)
-                    relation_data["admin_username"] = str(admin_username)
-                    relation_data["admin_password"] = str(admin_password)
-                    relation_data["admin_project_name"] = str(admin_project_name)
+                relation_data = relation.data[self.framework.model.app]
+                relation_data["host"] = str(host)
+                relation_data["port"] = str(port)
+                relation_data["user_domain_name"] = str(user_domain_name)
+                relation_data["project_domain_name"] = str(project_domain_name)
+                relation_data["username"] = str(username)
+                relation_data["password"] = str(password)
+                relation_data["service"] = str(service)
+                relation_data["keystone_db_password"] = str(keystone_db_password)
+                relation_data["region_id"] = str(region_id)
+                relation_data["admin_username"] = str(admin_username)
+                relation_data["admin_password"] = str(admin_password)
+                relation_data["admin_project_name"] = str(admin_project_name)
 
 
 class KeystoneClient(BaseRelationClient):
@@ -92,48 +91,48 @@ class KeystoneClient(BaseRelationClient):
 
     @property
     def host(self):
-        return self.get_data_from_unit("host")
+        return self.get_data_from_app("host")
 
     @property
     def port(self):
-        return self.get_data_from_unit("port")
+        return self.get_data_from_app("port")
 
     @property
     def user_domain_name(self):
-        return self.get_data_from_unit("user_domain_name")
+        return self.get_data_from_app("user_domain_name")
 
     @property
     def project_domain_name(self):
-        return self.get_data_from_unit("project_domain_name")
+        return self.get_data_from_app("project_domain_name")
 
     @property
     def username(self):
-        return self.get_data_from_unit("username")
+        return self.get_data_from_app("username")
 
     @property
     def password(self):
-        return self.get_data_from_unit("password")
+        return self.get_data_from_app("password")
 
     @property
     def service(self):
-        return self.get_data_from_unit("service")
+        return self.get_data_from_app("service")
 
     @property
     def keystone_db_password(self):
-        return self.get_data_from_unit("keystone_db_password")
+        return self.get_data_from_app("keystone_db_password")
 
     @property
     def region_id(self):
-        return self.get_data_from_unit("region_id")
+        return self.get_data_from_app("region_id")
 
     @property
     def admin_username(self):
-        return self.get_data_from_unit("admin_username")
+        return self.get_data_from_app("admin_username")
 
     @property
     def admin_password(self):
-        return self.get_data_from_unit("admin_password")
+        return self.get_data_from_app("admin_password")
 
     @property
     def admin_project_name(self):
-        return self.get_data_from_unit("admin_project_name")
+        return self.get_data_from_app("admin_project_name")
