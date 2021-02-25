@@ -272,12 +272,17 @@ class ContainerV3Builder:
 
 class PodSpecV3Builder:
     def __init__(self):
+        self._init_containers = []
         self._containers = []
         self._ingress_resources = []
 
     @property
     def containers(self):
         return self._containers
+
+    @property
+    def init_containers(self):
+        return self._init_containers
 
     @property
     def ingress_resources(self):
@@ -287,9 +292,13 @@ class PodSpecV3Builder:
     def pod_spec(self):
         return {
             "version": 3,
+            "initContainers": self.init_containers,
             "containers": self.containers,
             "kubernetesResources": {"ingressResources": self.ingress_resources},
         }
+
+    def add_init_container(self, container):
+        self._init_containers.append(container)
 
     def add_container(self, container):
         self._containers.append(container)
