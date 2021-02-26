@@ -90,6 +90,10 @@ class CharmedOsmBase(CharmBase):
             logger.error(f"Relation missing error: {e.message}")
             self.unit.status = BlockedStatus(e.message)
             return
+        except Exception as e:
+            logger.error(f"Unknown exception: {e}")
+            self.unit.status = BlockedStatus(e)
+            return
 
         if self.state.pod_spec != pod_spec:
             try:
