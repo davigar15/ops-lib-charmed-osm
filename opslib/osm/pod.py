@@ -292,7 +292,7 @@ class PodSpecV3Builder:
     def pod_spec(self):
         return {
             "version": 3,
-            "initContainers": self.init_containers,
+            # "initContainers": self.init_containers,
             "containers": self.containers,
             "kubernetesResources": {"ingressResources": self.ingress_resources},
         }
