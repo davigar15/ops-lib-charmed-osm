@@ -101,6 +101,7 @@ class TestPodSpecBuilder(unittest.TestCase):
                     }
                 ],
                 "kubernetesResources": {
+                    "pod": {"securityContext": {}},
                     "ingressResources": [
                         {
                             "name": "prometheus-ingress",

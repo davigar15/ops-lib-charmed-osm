@@ -91,8 +91,11 @@ class FilesV3Builder:
     def files(self):
         return self._files
 
-    def add_file(self, path: str, content: str):
-        self._files.append({"path": path, "content": content})
+    def add_file(self, path: str, content: str, mode: int = None):
+        file_spec = {"path": path, "content": content}
+        if mode:
+            file_spec.update({"mode": mode})
+        self._files.append(file_spec)
 
     def build(self):
         return self.files
@@ -275,6 +278,7 @@ class PodSpecV3Builder:
         self._init_containers = []
         self._containers = []
         self._ingress_resources = []
+        self._security_context = {}
 
     @property
     def containers(self):
@@ -289,12 +293,19 @@ class PodSpecV3Builder:
         return self._ingress_resources
 
     @property
+    def security_context(self):
+        return self._security_context
+
+    @property
     def pod_spec(self):
         return {
             "version": 3,
             # "initContainers": self.init_containers,
             "containers": self.containers,
-            "kubernetesResources": {"ingressResources": self.ingress_resources},
+            "kubernetesResources": {
+                "ingressResources": self.ingress_resources,
+                "pod": {"securityContext": self.security_context},
+            },
         }
 
     def add_init_container(self, container):
@@ -305,6 +316,9 @@ class PodSpecV3Builder:
 
     def add_ingress_resource(self, ingress_resource):
         self._ingress_resources.append(ingress_resource)
+
+    def set_security_context_fs_group(self, fs_group: int):
+        self._security_context.update({"fsGroup": fs_group})
 
     def build(self):
         return self.pod_spec
