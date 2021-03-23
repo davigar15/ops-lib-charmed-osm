@@ -1,6 +1,6 @@
-from typing import Any, get_origin, get_args, Union, List
 from collections.abc import Iterable
-
+from typing import Any, Union, List
+from typing_inspect import get_origin, get_args
 __all__ = ["ValidationError", "ModelValidator", "AttributeErrorTypes", "validator"]
 
 
@@ -113,7 +113,7 @@ def validate_model(model, data):
 
 def _safe_get_type(obj_type):
     if _is_optional_type(obj_type):
-        return _safe_get_type(get_args(obj_type)[0])
+        return _safe_get_type(obj_type.__args__[0])
     else:
         origin = get_origin(obj_type)
         return origin if origin is not None else obj_type
@@ -121,7 +121,7 @@ def _safe_get_type(obj_type):
 
 def _safe_get_args(obj_type):
     if _is_optional_type(obj_type):
-        return _safe_get_args(get_args(obj_type)[0])
+        return _safe_get_args(obj_type.__args__[0])
     else:
         return get_args(obj_type)
 
